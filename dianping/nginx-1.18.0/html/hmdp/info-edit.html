@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>大众点评</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./css/element.css">
+    <link href="./css/main.css" rel="stylesheet">
+    <link href="./css/info.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style type="text/css">
+        .el-input__inner {
+            border: 0;
+            height: 20px;
+            font-size: 10px;
+            padding: 0 20px;
+        }
+
+        .el-date-editor.el-input, .el-date-editor.el-input__inner {
+            width: 100px
+        }
+
+        .el-input--prefix .el-input__inner {
+            padding-left: 5px;
+        }
+
+        .el-input--suffix .el-input__inner {
+            padding-right: 5px;
+        }
+
+        .el-icon-date:before {
+            content: "";
+        }
+        .el-input__inner{
+            height: 10px;
+        }
+        .el-icon-date:after {
+            content: "\e78e";
+            padding-left: 30px;
+        }
+        /*.el-input--suffix .el-input__inner*/
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="header">
+        <div class="header-back-btn" @click="goBack"><i class="el-icon-arrow-left"></i></div>
+        <div class="header-title">资料编辑&nbsp;&nbsp;&nbsp;</div>
+    </div>
+    <div class="edit-container">
+        <div class="info-box">
+            <div class="info-item">
+                <div class="info-label">头像</div>
+                <el-upload
+                        class="avatar-uploader"
+                        :action="`http://localhost:8081/file/upload/${user.id}`"
+                        :show-file-list="false"
+                        :on-success="handleAvatarSuccess"
+                        width="35"
+                >
+
+                    <img v-if="user.icon" :src="user.icon || '/imgs/icons/default-icon.png'" class="avatar" width="35">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+
+            </div>
+            <div class="divider"></div>
+            <div class="info-item">
+                <div class="info-label">昵称</div>
+                <div class="info-btn">
+
+                    <el-input v-model="user.nickName"
+                              suffix-icon="el-icon-arrow-right"
+                              @change="changeName"
+                              style="overflow: hidden; width: 150px;text-align: right;padding: 5px 5px 5px 5px">
+
+                    </el-input>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="info-item">
+                <div class="info-label">个人介绍</div>
+                 <el-input placeholder="介绍一下自己" @change="updateUserInfo" v-model="info.introduce"
+                              :placeholder="info.introduce ? '' : '请介绍自己'"
+                              style="overflow: hidden; width: 150px;text-align: right;padding: 5px 5px 5px 5px"></el-input>
+                </div>
+            </div>
+        </div>
+        <div class="info-box">
+            <div class="info-item">
+                <div class="info-label">性别</div>
+                <div class="info-btn">
+                    <el-select v-model="info.gender" placeholder="选择" @change="updateUserInfo" class="custom-select"
+                               style="text-align: right;width: 150px;padding: 5px 5px 5px 5px">
+                        <el-option v-for="item in roles" :key="item.name" :value="item.flag"
+                                   :label="genderText(item.flag)">
+                        </el-option>
+                    </el-select>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="info-item">
+                <div class="info-label">城市</div>
+
+                <div class="info-btn">
+                    <el-select v-model="selectedCity" @change="updateUserInfo" placeholder="选择"
+                               style="text-align: right;width: 150px;padding: 5px 5px 5px 5px">
+                        <el-option value="">选择</el-option>
+                        <el-option v-for="city in cities" :value="city">{{ city }}</el-option>
+                    </el-select>
+
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="info-item">
+                <div class="info-label">生日</div>
+                <div class="info-btn" style="text-align: right;width: 150px;padding: 5px 5px 5px 5px">
+                    <el-date-picker
+                            v-model="info.birthday"
+                            :picker-options="birthdayPickerOptions"
+                            @change="updateUserInfo"
+                    ></el-date-picker>
+                    <!--          <div><i class="el-icon-arrow-right"></i></div>-->
+                </div>
+
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="info-item">
+                <div class="info-label">我的积分</div>
+                <div class="info-btn">
+                    <div>查看积分</div>
+                    <div><i class="el-icon-arrow-right"></i></div>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="info-item">
+                <div class="info-label">会员等级</div>
+                <div class="info-btn">
+                    <div><a href="javascript:void(0)">成为VIP尊享特权</a></div>
+                    <div><i class="el-icon-arrow-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <foot-bar :active-btn="4"></foot-bar>
+</div>
+<script src="./js/vue.js"></script>
+<script src="./js/axios.min.js"></script>
+<!-- 引入组件库 -->
+<script src="./js/element.js"></script>
+<script src="./js/common.js"></script>
+<script src="./js/footer.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    const app = new Vue({
+        el: "#app",
+        data: {
+            user: "",
+            info: {},
+            roles: [
+                {name: '男', flag: true},
+                {name: '女', flag: false}
+            ],
+            cities: ['北京', '上海', '广州', '深圳', '成都', '杭州'], // 城市的列表数据
+            selectedCity: '', // 选中的城市值
+            birthdayPickerOptions: { // Date picker options
+                // disabledDate(time) {
+                //     return time.getTime() > Date.now(); // Disable future dates
+                // },
+                disabledDate(time) {
+                    // 将时间转换为UTC时间
+                    const utcTime = new Date(time.getFullYear(), time.getMonth(), time.getDate(), 0, 0, 0, 0);
+                    // 获取当前日期的UTC时间
+                    const currentDate = new Date();
+                    currentDate.setUTCHours(0, 0, 0, 0);
+                    return utcTime.getTime() > currentDate.getTime(); // 禁用当前及将来日期
+                },
+
+            },
+        },
+        created() {
+            this.checkLogin();
+            this.getUserInfo();
+        },
+        methods: {
+            genderText(value) {
+                console.log(value)
+                return value ? '男' : '女';
+            },
+            checkLogin() {
+                // 查询用户信息
+                axios.get("/user/me")
+                    .then(({data}) => {
+                        this.user = data;
+                        // this.info = JSON.parse(sessionStorage.getItem("userInfo")) || {}
+                        const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
+                        if (userInfo) {
+                            this.info = {
+                                // introduce: userInfo.introduce || '',
+                                // gender: userInfo.gender || '',
+                                // city: userInfo.city || '',
+                                // birthday: userInfo.birthday || ''
+                                introduce: userInfo.introduce || '',
+                                gender: userInfo.gender !== undefined ? (userInfo.gender ? '男' : '女') : '',
+                                city: userInfo.city || '',
+                                birthday: userInfo.birthday || ''
+                            };
+                        } else {
+                            this.info = {
+                                introduce: '',
+                                gender: '',
+                                city: '',
+                                birthday: ''
+                            };
+                        }
+                    })
+                    .catch(err => {
+                        this.$message.error(err);
+                        setTimeout(() => location.href = "login.html", 1000)
+                    })
+            },
+            goBack() {
+                history.back();
+            },
+
+            updateUserInfo() {
+                // Perform the update request to the backend API
+                axios.put("/user/info",
+                    {
+                        userId: this.user.id,
+                        gender: this.info.gender === '男' ?true:false,
+                        city: this.selectedCity,
+                        birthday: this.info.birthday ,
+                        introduce: this.info.introduce
+                    })
+                    .then(response => {
+                        // Handle the response if needed
+                        this.$message.success("User information updated successfully");
+                    })
+                    .catch(error => {
+                        // Handle errors
+                        console.log(this.info)
+                        this.$message.error("Failed to update user information");
+                        console.error(error);
+                    });
+            },
+            getUserInfo() {
+                // 查询用户信息
+                axios.get("/user/getInfo")
+                    .then(({data}) => {
+                        if (data) {
+                            this.info = {
+                                introduce: data.introduce || '',
+                                gender: data.gender !== undefined ? (data.gender ? '男' : '女') : '',
+                                city: data.city || '',
+                                birthday: data.birthday || ''
+                            };
+                            this.selectedCity = data.city;
+                        } else {
+                            this.info = {
+                                introduce: '',
+                                gender: '',
+                                city: '',
+                                birthday: ''
+                            };
+                            this.selectedCity = '';
+                        }
+                    })
+                    .catch(err => {
+                        this.$message.error("Failed to update user information");
+                        console.error(err);
+                    });
+            },
+            changeName() {
+                axios.put("/user/changeName?nickName=" + this.user.nickName)
+                    .then(({data}) => {
+                        // Handle the response if needed
+                        this.user = data
+                        this.$message.success("User information updated successfully");
+                        this.getUser()
+                    })
+                    .catch(error => {
+                        // Handle errors
+                        this.$message.error("Failed to update user information");
+                        console.error(error);
+                    });
+            },
+            getUser() {
+                axios.get("/user/getUser?id=" + this.user.id)
+                    .then(({data}) => {
+                        this.user = data
+                    })
+                    .catch(err => {
+                        this.$message.error("Failed to update user information");
+                        console.error(error);
+                    })
+            },
+            handleAvatarSuccess(res){
+                console.log("成功有调用")
+                this.user.icon=res
+                this.getUser()
+                console.log("成功")
+            }
+
+        },
+
+    })
+</script>
+</body>
+</html>
